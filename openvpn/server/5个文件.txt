@@ -1,0 +1,5 @@
+cp pki/ca.crt /etc/openvpn/
+cp pki/issued/openvpn-server.crt /etc/openvpn/
+cp pki/private/openvpn-server.key /etc/openvpn/
+cp pki/dh.pem /etc/openvpn/
+cp pki/ta.key /etc/openvpn/ta.key

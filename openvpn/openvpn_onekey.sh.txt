@@ -1,0 +1,42 @@
+#bin/bash
+#changed port to 11294
+yum -y install epel
+yum -y install openvpn
+yum -y install easy-rsa
+#forwarding
+sed -i 's/net.ipv4.ip_forward = 0/net.ipv4.ip_forward = 1/g' /etc/sysctl.conf
+sysctl -p
+#vpn network add to route
+iptables -t nat -A POSTROUTING -s 172.16.99.0/24 -o eth0 -j MASQUERADE
+#download config
+git clone https://github.com/michaeltwo/openvpn.git
+cd 
+cp server.conf /etc/openvpn
+cp vars /etc/open/vpn/3.0.8
+cd /usr/share/easy-rsa/3.0.8
+cp -r /usr/share/easy-rsa/3.0.8/ /etc/openvpn/
+#exe
+cd /usr/share/easy-rsa/3.0.8/
+./easyrsa init-pki
+./easyrsa build-ca nopass
+./easyrsa gen-req openvpn-server nopass
+./easyrsa sign server openvpn-server
+./easyrsa gen-dh
+./easyrsa gen-req openvpn-client nopass
+./easyrsa sign client openvpn-client
+#copying server files
+cp pki/ca.crt /etc/openvpn/
+cp pki/issued/openvpn-server.crt /etc/openvpn/
+cp pki/private/openvpn-server.key /etc/openvpn/
+cp pki/dh.pem /etc/openvpn/
+#ta.key
+cd /etc/openvpn
+openvpn --genkey --secret ta.key
+#start server
+systemctl status openvpn-server@openvpnserver
+systemctl enable openvpn-server@openvpnserver
+#copying client files
+cp /etc/openvpn/3.0.8/pki/ca.crt /root/client
+cp /etc/openvpn/3.0.8/pki/issued/openvpn-client.crt /root/client
+cp /etc/openvpn/3.0.8/pki/private/openvpn-client.key /root/client
+cp /etc/openvpn/ta.key /root/client
